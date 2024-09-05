@@ -1,0 +1,23 @@
+stages:
+  - lint
+  - package
+
+image: registry.srv.local/ci/sb-lua-base:1.0.0
+
+lint:
+  stage: lint
+  before_script: 
+    - luarocks install luacheck
+  script:
+    - luacheck .
+  except:
+    - tags
+
+package:
+  stage: package
+  script:
+    - tar czvpf sb-ab-testing-0.1.0-1.tar.gz kong/plugins/sb-ab-testing/
+    # upload to a storage 
+    - luarocks upload sb-ab-testing-0.1.0-1.rockspec --api-key=${LUA_ROCKS_API_KEY}
+  only:
+    - /^v-.*/
