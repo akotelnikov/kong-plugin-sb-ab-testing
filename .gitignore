@@ -13,3 +13,4 @@ luacov.report.out
 # exclude Pongo containerid file
 .containerid
 .DS_Store
+sb-ab-testing-0.1.0-1.tar.gz

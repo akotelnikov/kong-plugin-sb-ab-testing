@@ -1,7 +1,7 @@
 local access = require "kong.plugins.sb-ab-testing.access"
 
 local plugin = {
-  PRIORITY = 1000,
+  PRIORITY = 900,
   VERSION = "0.1",
 }
 

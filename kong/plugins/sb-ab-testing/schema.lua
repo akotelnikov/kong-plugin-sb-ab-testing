@@ -12,6 +12,15 @@ local schema = {
         fields = {
           { experiment_uuid = { type = "string", required = true } },
           {
+            ab_splitter_api = {
+              type = "record",
+              fields = {
+                { base_url = { type = "string", required = true, default = "ab-splitter.xsolla.com" } },
+                { timeout = { type = "integer", required = true,  default = 60000 } },
+              }
+            }
+          },
+          {
             conditions = {
               type = "array",
               elements = {
@@ -29,6 +38,7 @@ local schema = {
               elements = {
                 type = "record",
                 fields = {
+                  { group_name = { type = "string", required = true } },
                   { site_name = { type = "string", required = true } },
                   { site_percent = { type = "integer", required = true } },
                 }

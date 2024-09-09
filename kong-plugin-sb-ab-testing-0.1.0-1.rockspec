@@ -2,12 +2,13 @@ local plugin_name = "sb-ab-testing"
 local package_name = "kong-plugin-" .. plugin_name
 local package_version = "0.1.0"
 local rockspec_revision = "1"
+local full_version = package_version .. "-" .. rockspec_revision
 
 package = package_name
-version = package_version .. "-" .. rockspec_revision
+version = full_version
 supported_platforms = { "linux", "macosx" }
 source = {
-  url = "http://me.github.com/luafruits/luafruits-1.0.tar.gz"
+  url = "file://" .. plugin_name .. "-" .. full_version .. ".tar.gz"
 }
 
 description = {
