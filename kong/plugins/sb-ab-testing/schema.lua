@@ -10,13 +10,13 @@ local schema = {
       config = {
         type = "record",
         fields = {
-          { experiment_uuid = { type = "string", required = true } },
           {
             ab_splitter_api = {
               type = "record",
               fields = {
                 { base_url = { type = "string", required = true, default = "ab-splitter.xsolla.com" } },
-                { timeout = { type = "integer", required = true,  default = 60000 } },
+                { path = { type = "string", required = true, default = "/v3/split/by_user_id" } },
+                { timeout = { type = "integer", required = true, default = 10000 } },
               }
             }
           },
@@ -32,6 +32,7 @@ local schema = {
               },
             }
           },
+          { experiment_uuid = { type = "string", required = true } },
           {
             groups = {
               type = "array",
@@ -40,9 +41,18 @@ local schema = {
                 fields = {
                   { group_name = { type = "string", required = true } },
                   { site_name = { type = "string", required = true } },
-                  { site_percent = { type = "integer", required = true } },
                 }
               },
+            }
+          },
+          {
+            path_transformation = {
+              type = "record",
+              fields = {
+                { enabled = { type = "boolean", required = true, default = true } },
+                { log = { type = "boolean", required = true, default = false } },
+                { prefix = { type = "string", required = false } }
+              }
             }
           }
         }
