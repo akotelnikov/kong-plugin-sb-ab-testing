@@ -30,6 +30,7 @@ local schema = {
                   { value = { type = "string", required = true } },
                 }
               },
+              default = {}
             }
           },
           { experiment_uuid = { type = "string", required = true } },
@@ -43,15 +44,17 @@ local schema = {
                   { site_name = { type = "string", required = true } },
                 }
               },
+              default = {}
             }
           },
+          { log = { type = "boolean", required = true, default = false } },
           {
             path_transformation = {
               type = "record",
               fields = {
                 { enabled = { type = "boolean", required = true, default = true } },
                 { log = { type = "boolean", required = true, default = false } },
-                { prefix = { type = "string", required = false } }
+                { prefix = { type = "string", required = false, default = "/sites" } }
               }
             }
           }

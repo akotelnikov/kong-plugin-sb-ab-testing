@@ -8,8 +8,8 @@ package = package_name
 version = full_version
 supported_platforms = { "linux", "macosx" }
 source = {
-  url = "git+https://github.com/akotelnikov/kong-plugin-sb-ab-testing.git",
-  tag = "0.1.0"
+  url = "git+https://github.com/akotelnikov/" .. package_name .. ".git",
+  tag = full_version
 }
 
 description = {

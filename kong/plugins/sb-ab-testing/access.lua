@@ -13,12 +13,18 @@ local COOKIE_MAX_AGE = 604800 -- 1 week
 
 local _M = {}
 
-local function generate_user_id()
-  local request_id = kong.request.get_header("x-request-id")
-  if not request_id or request_id == "" then
-    request_id = uuid.generate_v4()
+local function generate_user_id(conf)
+  local user_id = kong.request.get_header("x-request-id")
+  if not user_id or user_id == "" then
+    user_id = uuid.generate_v4()
   end
-  return request_id
+
+  if conf.log then
+    local log_message = string.format("New user-id %s has been assigned", user_id)
+    kong.log.notice(log_message)
+  end
+
+  return user_id
 end
 
 local function fetch_ab_group_name(user_id, conf)
@@ -35,15 +41,37 @@ local function fetch_ab_group_name(user_id, conf)
     body = body,
   })
 
-  if not res then
+  if not res or err then
+    local log_message = string.format(
+      "The A/B group retrieving request by user-id %s and experiment_uuid %s wasn't fulfilled",
+      user_id, conf.experiment_uuid)
+    kong.log.err(log_message)
     kong.log.err(err)
+    return nil
   end
 
-  local body = res.body
-  if body and body ~= "" then
-    body = cjson.decode(body)
+  if not res.body or res.body == "" then
+    local log_message = string.format(
+      "The A/B group retrieving request by user-id %s and experiment_uuid %s can't be parsed",
+      user_id, conf.experiment_uuid)
+    kong.log.err(log_message)
+    return nil
   end
 
+  if conf.log then
+    local log_message = string.format(
+    "The A/B group retrieving request by user-id %s and experiment_uuid %s was fulfilled with body $s", user_id,
+      conf.experiment_uuid, res.body)
+    kong.log.notice(log_message)
+  end
+
+  local body = cjson.decode(res.body)
+  local group_name = body.group_name
+  if conf.log then
+    local log_message = string.format("The group_name %s has been assigned to the user_id %s", group_name, user_id)
+    kong.log.notice(log_message)
+  end
+  
   return body.group_name
 end
 
@@ -52,7 +80,7 @@ local function modify_routes(ab_group_name, conf)
     local log_message = string.format(
       "A/B group name can't be found in the site with _id %s and experiment_uuid %s",
       ab_group_name, conf.experiment_uuid)
-    kong.log.notice(log_message)
+    kong.log.err(log_message)
     return
   end
 
@@ -66,9 +94,9 @@ local function modify_routes(ab_group_name, conf)
   -- if can't find a target_group for any reason we don't modify routes
   if not target_group then
     local log_message = string.format(
-      "There's no the experiment group in the response. Routes remain default in the site with _id %s and experiment_uuid %s",
+      "There's no the experiment group in the response. Routes remain default for the site with _id %s and experiment_uuid %s",
       ab_group_name, conf.experiment_uuid)
-    kong.log.notice(log_message)
+    kong.log.err(log_message)
     return
   end
 
@@ -78,22 +106,11 @@ local function modify_routes(ab_group_name, conf)
 end
 
 local function update_cookie(user_id, ab_group_name)
-  -- local original_cookie = ngx.header["Set-Cookie"]
-  -- local remember_flags = string.format("; Max-Age=%d", COOKIE_MAX_AGE)
-
-  -- local user_id_cookie_data = string.format("%s=%s%s", SB_USER_ID_COOKIE_NAME, user_id, remember_flags)
-  -- local cookie_with_user_id = merge_cookies(original_cookie, #SB_USER_ID_COOKIE_NAME, SB_USER_ID_COOKIE_NAME, user_id_cookie_data)
-
-  -- local updated_cookie_data = string.format("%s=%s%s", SB_AB_GROUP_NAME_COOKIE_NAME, ab_group_name, remember_flags)
-  -- local updated_cookie = merge_cookies(cookie_with_user_id, #SB_AB_GROUP_NAME_COOKIE_NAME, SB_AB_GROUP_NAME_COOKIE_NAME, updated_cookie_data)
-
-  -- ngx.header["Set-Cookie"] = updated_cookie
-
   local cookie_flags = string.format("; Max-Age=%d", COOKIE_MAX_AGE)
-  kong.response.add_header("Set-Cookie", 
-    string.format("%s=%s%s", SB_USER_ID_COOKIE_NAME, user_id, cookie_flags))
-  kong.response.add_header("Set-Cookie",
-    string.format("%s=%s%s", SB_AB_GROUP_NAME_COOKIE_NAME, ab_group_name, cookie_flags))
+  local user_id_cookie = string.format("%s=%s%s", SB_USER_ID_COOKIE_NAME, user_id, cookie_flags)
+  local ab_group_name_cookie = string.format("%s=%s%s", SB_AB_GROUP_NAME_COOKIE_NAME, ab_group_name, cookie_flags)
+  kong.response.add_header("Set-Cookie", user_id_cookie)
+  kong.response.add_header("Set-Cookie", ab_group_name_cookie)
 end
 
 function _M.execute(conf)
@@ -102,7 +119,7 @@ function _M.execute(conf)
     user_id = generate_user_id()
   end
 
-  -- ab_group_name is a document._id
+  -- ab_group_name is supposed to be a document._id
   local ab_group_name = ngx.var["cookie_" .. string.upper(SB_AB_GROUP_NAME_COOKIE_NAME)]
   if not ab_group_name then
     ab_group_name = fetch_ab_group_name(user_id, conf)
