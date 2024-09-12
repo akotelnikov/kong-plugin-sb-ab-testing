@@ -1,3 +1,5 @@
+.semver-regxp: &semver-regexp /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
 stages:
   - lint
   - package
@@ -15,10 +17,9 @@ lint:
 
 package:
   stage: package
-  image: registry.srv.local/ci/sb-lua-base:1.0.0
   script:
-    - tar czvpf sb-ab-testing-0.1.0-1.tar.gz kong/plugins/sb-ab-testing/
+    - tar czvpf kong-plugin-sb-ab-testing-${CI_COMMIT_REF_NAME}.tar.gz kong/plugins/sb-ab-testing/
     # upload to a storage 
-    - luarocks upload sb-ab-testing-0.1.0-1.rockspec --api-key=${LUA_ROCKS_API_KEY}
+    - luarocks upload kong-plugin-sb-ab-testing-${CI_COMMIT_REF_NAME}.rockspec --api-key=${LUA_ROCKS_API_KEY}
   only:
-    - /^v-.*/
+    - *semver-regexp

@@ -8,7 +8,8 @@ package = package_name
 version = full_version
 supported_platforms = { "linux", "macosx" }
 source = {
-  url = "file://" .. plugin_name .. "-" .. full_version .. ".tar.gz"
+  url = "git+https://github.com/akotelnikov/kong-plugin-sb-ab-testing.git",
+  tag = "0.1.0"
 }
 
 description = {
