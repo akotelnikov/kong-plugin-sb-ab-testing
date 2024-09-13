@@ -116,7 +116,7 @@ end
 function _M.execute(conf)
   local user_id = ngx.var["cookie_" .. string.upper(SB_USER_ID_COOKIE_NAME)]
   if not user_id then
-    user_id = generate_user_id()
+    user_id = generate_user_id(conf)
   end
 
   -- ab_group_name is supposed to be a document._id
