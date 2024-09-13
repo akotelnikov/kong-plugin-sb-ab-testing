@@ -15,7 +15,7 @@ local schema = {
               type = "record",
               fields = {
                 { base_url = { type = "string", required = true, default = "ab-splitter.xsolla.com" } },
-                { path = { type = "string", required = true, default = "/v3/split/by_user_id" } },
+                { path = { type = "string", required = true, default = "/v3/split/by_experiment_uuid" } },
                 { timeout = { type = "integer", required = true, default = 10000 } },
               }
             }
