@@ -60,7 +60,7 @@ local function fetch_ab_group_name(user_id, conf)
 
   if conf.log then
     local log_message = string.format(
-    "The A/B group retrieving request by user-id %s and experiment_uuid %s was fulfilled with body $s", user_id,
+    "The A/B group retrieving request by user-id %s and experiment_uuid %s was fulfilled with body %s", user_id,
       conf.experiment_uuid, res.body)
     kong.log.notice(log_message)
   end
@@ -116,7 +116,7 @@ end
 function _M.execute(conf)
   local user_id = ngx.var["cookie_" .. string.upper(SB_USER_ID_COOKIE_NAME)]
   if not user_id then
-    user_id = generate_user_id()
+    user_id = generate_user_id(conf)
   end
 
   -- ab_group_name is supposed to be a document._id
