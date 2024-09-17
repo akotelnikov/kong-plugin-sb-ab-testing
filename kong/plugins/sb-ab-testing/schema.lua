@@ -42,17 +42,7 @@ local schema = {
               }
             },
           },
-          { log = { type = "boolean", required = true, default = false } },
-          {
-            path_transformation = {
-              type = "record",
-              fields = {
-                { enabled = { type = "boolean", required = true, default = true } },
-                { log = { type = "boolean", required = true, default = false } },
-                { prefix = { type = "string", required = false, default = "/sites" } }
-              }
-            }
-          }
+          { log = { type = "boolean", required = true, default = false } }
         }
       }
     }
