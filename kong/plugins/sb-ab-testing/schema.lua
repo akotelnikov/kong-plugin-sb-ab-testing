@@ -21,31 +21,26 @@ local schema = {
             }
           },
           {
-            conditions = {
-              type = "array",
-              elements = {
-                type = "record",
-                fields = {
-                  { name = { type = "string", required = true } },
-                  { value = { type = "string", required = true } },
-                }
-              },
-              default = {}
-            }
-          },
-          { experiment_uuid = { type = "string", required = true } },
-          {
-            groups = {
-              type = "array",
-              elements = {
-                type = "record",
-                fields = {
-                  { group_name = { type = "string", required = true } },
-                  { site_name = { type = "string", required = true } },
-                }
-              },
-              default = {}
-            }
+            experiment = {
+              type = "record",
+              fields = {
+                { uuid = { type = "string", required = true } },
+                {
+                  groups = {
+                    type = "array",
+                    elements = {
+                      type = "record",
+                      fields = {
+                        { group_name = { type = "string", required = true } },
+                        { site_name = { type = "string", required = true } },
+                      }
+                    },
+                  }
+                },
+                { datetime_start = { type = "integer", required = true } },
+                { datetime_end = { type = "integer", required = true } },
+              }
+            },
           },
           { log = { type = "boolean", required = true, default = false } },
           {
@@ -59,9 +54,9 @@ local schema = {
             }
           }
         }
-      },
-    },
-  },
+      }
+    }
+  }
 }
 
 return schema
