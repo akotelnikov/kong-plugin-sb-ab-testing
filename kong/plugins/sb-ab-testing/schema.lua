@@ -21,47 +21,42 @@ local schema = {
             }
           },
           {
-            conditions = {
-              type = "array",
-              elements = {
-                type = "record",
-                fields = {
-                  { name = { type = "string", required = true } },
-                  { value = { type = "string", required = true } },
-                }
-              },
-              default = {}
-            }
-          },
-          { experiment_uuid = { type = "string", required = true } },
-          {
-            groups = {
-              type = "array",
-              elements = {
-                type = "record",
-                fields = {
-                  { group_name = { type = "string", required = true } },
-                  { site_name = { type = "string", required = true } },
-                }
-              },
-              default = {}
-            }
-          },
-          { log = { type = "boolean", required = true, default = false } },
-          {
-            path_transformation = {
+            experiment = {
               type = "record",
               fields = {
-                { enabled = { type = "boolean", required = true, default = true } },
-                { log = { type = "boolean", required = true, default = false } },
-                { prefix = { type = "string", required = false, default = "/sites" } }
+                { uuid = { type = "string", required = true } },
+                {
+                  groups = {
+                    type = "array",
+                    elements = {
+                      type = "record",
+                      fields = {
+                        { group_name = { type = "string", required = true } },
+                        { site_name = { type = "string", required = true } },
+                      }
+                    },
+                  }
+                },
+                { datetime_start = { type = "integer", required = true } },
+                { datetime_end = { type = "integer", required = true } },
+              }
+            },
+            { log = { type = "boolean", required = true, default = false } },
+            {
+              path_transformation = {
+                type = "record",
+                fields = {
+                  { enabled = { type = "boolean", required = true, default = true } },
+                  { log = { type = "boolean", required = true, default = false } },
+                  { prefix = { type = "string", required = false, default = "/sites" } }
+                }
               }
             }
           }
         }
-      },
-    },
-  },
+      }
+    }
+  }
 }
 
 return schema
