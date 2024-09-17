@@ -7,7 +7,7 @@ local kong = kong
 
 local function get_service_path()
   -- a service is being looked up by a route we created earlier
-  local service = kong.router.get_service() 
+  local service = kong.router.get_service()
   if service then
     -- For example "/my-game/"
     return service.path
@@ -33,7 +33,7 @@ end
 -- /my-page/ -> /my-page/index.html
 -- /multipage/ru-RU/first-game-subpath/index.html -> /first-game/ru-RU/index.html
 --
-local function get_normalized_path(path_transformation_conf, target_path)
+local function get_path(path_transformation_conf, target_path)
   if not target_path then
     target_path = get_service_path()
   end
@@ -76,5 +76,7 @@ local function get_normalized_path(path_transformation_conf, target_path)
 end
 
 return {
-  get_normalized_path = get_normalized_path
+  get_service_path = get_service_path,
+  add_index_file_to_path = add_index_file_to_path,
+  get_path = get_path
 }
