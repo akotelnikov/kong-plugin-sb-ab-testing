@@ -175,7 +175,7 @@ local function modify_routes(ab_group_name, conf)
   kong.service.request.set_path(path_with_experiment)
 
   -- used to build service req path in the kong-plugin-google-storage-adapter
-  kong.ctx.shared.ab_testing_path_with_experiment = path_with_experiment
+  kong.ctx.shared.ab_testing_path = path_with_experiment
 
   if conf.log then
     local log_message = string.format("The path has been changed to %s due to the A/B testing policy", path_with_experiment)
