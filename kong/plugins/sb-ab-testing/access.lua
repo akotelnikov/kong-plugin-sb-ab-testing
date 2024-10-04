@@ -38,7 +38,7 @@ local function parse_user_conditions(user_id, conf)
     os = "android"
   end
   if string.find(user_agent, "iphone") then
-    return "iphone"
+    os = "ios"
   end
 
   local conditions = {
@@ -52,7 +52,7 @@ local function parse_user_conditions(user_id, conf)
     }
   }
 
-  local country = kong.request.get_header("x-geoip-country")
+  local country = kong.request.get_header("x-geoip-country") or ""
   if country and country ~= "" then
     table.insert(conditions, {
       name = "country",
@@ -163,22 +163,24 @@ local function modify_routes(ab_group_name, conf)
   end
 
   if conf.log then
-    local log_message = string.format("Due to an A/B testing policy the service will be changed to %s", target_group.site_name)
+    local log_message = string.format("Due to an A/B testing policy the service will be changed to %s",
+      target_group.site_name)
     kong.log.notice(log_message)
   end
 
   local req_service_path = string.gsub(get_service_path(), '%-', "%%-") -- making a pattern from a string with -
   local req_path = kong.request.get_path()
-  local target_path = string.format("/%s/", target_group.site_name) -- changing from my-site to /my-site/
+  local target_path = string.format("/%s/", target_group.site_name)     -- changing from my-site to /my-site/
 
   local path_with_experiment = string.gsub(req_path, req_service_path, target_path)
-  kong.service.request.set_path(path_with_experiment)
+  -- kong.service.request.set_path(path_with_experiment)
 
   -- used to build service req path in the kong-plugin-google-storage-adapter
   kong.ctx.shared.ab_testing_path = path_with_experiment
 
   if conf.log then
-    local log_message = string.format("The path has been changed to %s due to the A/B testing policy", path_with_experiment)
+    local log_message = string.format("The path has been changed to %s due to the A/B testing policy",
+      path_with_experiment)
     kong.log.notice(log_message)
   end
 end
@@ -198,7 +200,7 @@ end
 function _M.execute(conf)
   local datetime_now = os.time()
   local is_experiment_active = datetime_now > conf.experiment.datetime_start and
-  datetime_now < conf.experiment.datetime_end
+      datetime_now < conf.experiment.datetime_end
   if not is_experiment_active then
     return
   end
