@@ -1,15 +1,47 @@
 local cjson = require "cjson"
 local uuid = require "resty.jit-uuid"
 local http = require "resty.http"
+local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 
 local ngx = ngx
 local kong = kong
 
 local SB_USER_ID_COOKIE_NAME = 'sb_user_id'
 local SB_AB_GROUP_NAME_COOKIE_NAME = 'sb_ab_group'
+local SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME = 'xsolla_login_token_sb'
 local COOKIE_MAX_AGE = 604800 -- 1 week
 
 local _M = {}
+
+local function parse_user_id_from_token(conf)
+  local token = ngx.var["cookie_" .. string.upper(SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME)]
+  if not token then
+    return
+  end
+  local jwt, err = jwt_decoder:new(token)
+  if err then
+    local log_message = string.format("The token can't be decoded; %s", tostring(err))
+    kong.log.err(log_message)
+    return
+  end
+
+  local user_id
+  -- if that would be necessary we will add more providers in future
+  if jwt.claims.provider == "kabam" then
+    if jwt.claims and jwt.claims.partner_data and jwt.claims.partner_data.custom_parameters and jwt.claims.partner_data.custom_parameters.mcoc then
+      user_id = tostring(jwt.claims.partner_data.custom_parameters.mcoc)
+    else
+      local log_message = string.format("There's no partner_data.custom_parameters.mcoc in the token %s", token)
+      kong.log.err(log_message)
+    end
+  end
+
+  if user_id and conf.log then
+    local log_message = string.format("The user-id %s has been parsed from the auth cookie", user_id)
+    kong.log.notice(log_message)
+  end
+  return user_id
+end
 
 local function generate_user_id(conf)
   local user_id = kong.request.get_header("x-request-id")
@@ -18,7 +50,7 @@ local function generate_user_id(conf)
   end
 
   if conf.log then
-    local log_message = string.format("New user-id %s has been assigned", user_id)
+    local log_message = string.format("A new user-id %s has been assigned", user_id)
     kong.log.notice(log_message)
   end
 
@@ -71,6 +103,12 @@ local function parse_user_conditions(user_id, conf)
 end
 
 local function fetch_ab_group_name(user_id, conf)
+  if not user_id then
+    local log_message = string.format("There's no user-id has been provided while fetching an A/B group name")
+    kong.log.err(log_message)
+    return nil
+  end
+
   local httpc = http.new()
   httpc:set_timeout(conf.ab_splitter_api.timeout)
 
@@ -87,10 +125,9 @@ local function fetch_ab_group_name(user_id, conf)
 
   if not res or err then
     local log_message = string.format(
-      "The A/B group retrieving request by the user-id %s and the experiment %s wasn't fulfilled",
-      user_id, conf.experiment.uuid)
+      "The A/B group retrieving request by the user-id %s and the experiment %s wasn't fulfilled; %s",
+      user_id, conf.experiment.uuid, tostring(err))
     kong.log.err(log_message)
-    kong.log.err(err)
     return nil
   end
   if not res.body or res.body == "" then
@@ -207,7 +244,12 @@ function _M.execute(conf)
 
   local user_id = ngx.var["cookie_" .. string.upper(SB_USER_ID_COOKIE_NAME)]
   if not user_id then
-    user_id = generate_user_id(conf)
+    if conf.experiment.type == "authorized-users-only" then
+      user_id = parse_user_id_from_token(conf)
+    else
+      -- conf.experiment.type == "regular"
+      user_id = generate_user_id(conf)
+    end
   end
 
   -- ab_group_name is supposed to be a document._id

@@ -24,6 +24,7 @@ local schema = {
             experiment = {
               type = "record",
               fields = {
+                { type = { type = "string", required = true, default = 'regular' } },
                 { uuid = { type = "string", required = true } },
                 {
                   groups = {
