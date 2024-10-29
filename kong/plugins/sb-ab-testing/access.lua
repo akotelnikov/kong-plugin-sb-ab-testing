@@ -6,6 +6,9 @@ local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local ngx = ngx
 local kong = kong
 
+-- local REGULAR_AB_TEST_TYPE = 'regular'
+local AUTHORIZED_USERS_ONLY_AB_TEST_TYPE = 'authorized-users-only'
+
 local SB_USER_ID_COOKIE_NAME = 'sb_user_id'
 local SB_AB_GROUP_NAME_COOKIE_NAME = 'sb_ab_group'
 local SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME = 'xsolla_login_token_sb'
@@ -244,10 +247,10 @@ function _M.execute(conf)
 
   local user_id = ngx.var["cookie_" .. string.upper(SB_USER_ID_COOKIE_NAME)]
   if not user_id then
-    if conf.experiment.type == "authorized-users-only" then
+    if conf.experiment.type == AUTHORIZED_USERS_ONLY_AB_TEST_TYPE then
       user_id = parse_user_id_from_token(conf)
     else
-      -- conf.experiment.type == "regular"
+      -- conf.experiment.type == REGULAR_AB_TEST_TYPE
       user_id = generate_user_id(conf)
     end
   end
