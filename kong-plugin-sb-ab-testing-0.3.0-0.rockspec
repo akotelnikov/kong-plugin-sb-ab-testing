@@ -1,6 +1,6 @@
 local plugin_name = "sb-ab-testing"
 local package_name = "kong-plugin-" .. plugin_name
-local package_version = "0.2.0"
+local package_version = "0.3.0"
 local rockspec_revision = "0"
 local full_version = package_version .. "-" .. rockspec_revision
 
