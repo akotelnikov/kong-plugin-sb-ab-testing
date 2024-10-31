@@ -29,14 +29,11 @@ local function parse_user_id_from_token(conf)
   end
 
   local user_id
-  -- if that would be necessary we will add more providers in future
-  if jwt.claims.provider == "kabam" then
-    if jwt.claims and jwt.claims.partner_data and jwt.claims.partner_data.custom_parameters and jwt.claims.partner_data.custom_parameters.mcoc then
-      user_id = tostring(jwt.claims.partner_data.custom_parameters.mcoc)
-    else
-      local log_message = string.format("There's no partner_data.custom_parameters.mcoc in the token %s", token)
-      kong.log.err(log_message)
-    end
+  if jwt.claims and jwt.claims.sub then
+    user_id = jwt.claims.sub
+  else
+    local log_message = string.format("There's no subject in the token %s", token)
+    kong.log.err(log_message)
   end
 
   if user_id and conf.log then
