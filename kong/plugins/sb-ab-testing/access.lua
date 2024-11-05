@@ -17,7 +17,9 @@ local COOKIE_MAX_AGE = 604800 -- 1 week
 local _M = {}
 
 local function parse_user_id_from_token(conf)
-  local token = ngx.var["cookie_" .. string.upper(SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME)]
+  local token_from_query = kong.request.get_query_arg("token")
+  local token_from_cookie = ngx.var["cookie_" .. string.upper(SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME)]
+  local token = token_from_query or token_from_cookie
   if not token then
     return
   end
