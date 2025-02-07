@@ -12,7 +12,7 @@ local AUTHORIZED_USERS_ONLY_AB_TEST_TYPE = 'authorized-users-only'
 local SB_USER_ID_COOKIE_NAME = 'sb_user_id'
 local SB_AB_GROUP_NAME_COOKIE_NAME = 'sb_ab_group'
 local SB_XSOLLA_LOGIN_TOKEN_COOKIE_NAME = 'xsolla_login_token_sb'
-local COOKIE_MAX_AGE = 604800 -- 1 week
+local COOKIE_MAX_AGE = 30 * 86400 -- 30 days
 
 local _M = {}
 
