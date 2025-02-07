@@ -50,3 +50,12 @@ For a complete walkthrough check [this blogpost on the Kong website](https://kon
   "consumer": null
 }
 ```
+
+### Deploy
+1. Make changes to the code
+2. Update version in file `kong-plugin-sb-ab-testing-{version}-{revision}` and change file name
+2. Push it to master
+3. Create tag by version `git tag 0.3.3-0 -m "<tag message>"`
+4. Push tag `git push origin 0.3.3-0`
+5. Create pack `luarocks pack kong-plugin-sb-ab-testing-0.3.3-0.rockspec`
+6. Upload pack `luarocks upload kong-plugin-sb-ab-testing-0.3.3-0.rockspec --api-key=`. Get API key from keeper
