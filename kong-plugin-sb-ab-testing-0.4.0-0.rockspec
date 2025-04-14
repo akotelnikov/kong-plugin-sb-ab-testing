@@ -1,6 +1,6 @@
 local plugin_name = "sb-ab-testing"
 local package_name = "kong-plugin-" .. plugin_name
-local package_version = "0.3.3"
+local package_version = "0.4.0"
 local rockspec_revision = "0"
 local full_version = package_version .. "-" .. rockspec_revision
 
@@ -8,8 +8,7 @@ package = package_name
 version = full_version
 supported_platforms = { "linux", "macosx" }
 source = {
-  url = "git+https://github.com/akotelnikov/" .. package_name .. ".git",
-  tag = full_version
+  url = "https://storage.googleapis.com/cloud-site-builder-bucket-prod/" .. package_name .. "-" .. full_version .. ".tar.gz"
 }
 
 description = {

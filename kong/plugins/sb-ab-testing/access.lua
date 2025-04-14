@@ -167,15 +167,6 @@ local function fetch_ab_group_name(user_id, conf)
   return group_name
 end
 
-local function get_service_path()
-  local service = kong.router.get_service()
-  if service then
-    -- For example "/my-game/"
-    return service.path
-  end
-  return ""
-end
-
 local function modify_routes(ab_group_name, conf)
   if not ab_group_name then
     local log_message = string.format("There's no A/B group name for the experiment %s", conf.experiment.uuid)
@@ -205,21 +196,8 @@ local function modify_routes(ab_group_name, conf)
     kong.log.notice(log_message)
   end
 
-  local req_service_path = string.gsub(get_service_path(), '%-', "%%-") -- making a pattern from a string with -
-  local req_path = kong.request.get_path()
-  local target_path = string.format("/%s/", target_group.site_name)     -- changing from my-site to /my-site/
-
-  local path_with_experiment = string.gsub(req_path, req_service_path, target_path)
-  -- kong.service.request.set_path(path_with_experiment)
-
   -- used to build service req path in the kong-plugin-google-storage-adapter
-  kong.ctx.shared.ab_testing_path = path_with_experiment
-
-  if conf.log then
-    local log_message = string.format("The path has been changed to %s due to the A/B testing policy",
-      path_with_experiment)
-    kong.log.notice(log_message)
-  end
+  kong.ctx.shared.ab_testing_site_name = target_group.site_name
 end
 
 local function update_cookie(user_id, ab_group_name)
