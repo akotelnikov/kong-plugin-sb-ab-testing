@@ -1,14 +1,14 @@
-.semver-regxp: &semver-regexp /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
-
 stages:
   - lint
   - package
 
-image: registry.srv.local/ci/sb-lua-base:1.0.0
-
 lint:
   stage: lint
-  before_script: 
+  image: google/cloud-sdk:slim
+  before_script:
+    # Install luarocks dependencies and luarocks itself
+    - apt-get update && apt-get install -y luarocks build-essential unzip
+    # Install luacheck
     - luarocks install luacheck
   script:
     - luacheck .
@@ -17,9 +17,27 @@ lint:
 
 package:
   stage: package
+  image: google/cloud-sdk:slim
+  before_script:
+    # Install luarocks dependencies and luarocks itself
+    - apt-get update && apt-get install -y luarocks build-essential unzip
+    # Install luacheck
+    - luarocks install luacheck
+    - luarocks install lua-cjson
   script:
-    - tar czvpf kong-plugin-sb-ab-testing-${CI_COMMIT_REF_NAME}.tar.gz kong/plugins/sb-ab-testing/
-    # upload to a storage 
-    - luarocks upload kong-plugin-sb-ab-testing-${CI_COMMIT_REF_NAME}.rockspec --api-key=${LUA_ROCKS_API_KEY}
+    - artifact_name=${CI_PROJECT_NAME}-${CI_COMMIT_TAG}
+    - echo "Artifact name:${artifact_name}"
+    - artifact_file=${artifact_name}.tar.gz
+    - mkdir ${artifact_name}
+    - cp -r ./kong ./${artifact_name}
+    - tar -czvpf ${artifact_file} ./${artifact_name}
+    # upload to a storage
+    - echo $SERVICE_ACCOUNT_DATA > ./secret.json
+    - gcloud auth activate-service-account $SERVICE_ACCOUNT_EMAIL --key-file=./secret.json --project=cloud-storage-buckets-prod
+    - gsutil cp "${artifact_file}" gs://cloud-site-builder-bucket-prod
+    - echo "Artifact URL:https://storage.googleapis.com/cloud-site-builder-bucket-prod/${artifact_file}"
+    # - luarocks build --local
+    # - luarocks pack ${artifact_name}
+    - luarocks upload ${artifact_name}.rockspec --api-key=${LUA_ROCKS_API_KEY} --force
   only:
-    - *semver-regexp
+    - tags
